@@ -81,7 +81,7 @@ services:
   mysqldb:
     image: mysql
     restart: always
-    env_file: "config/storage/prod.env"
+    env_file: "./config/storage/prod.env"
     volumes:
       - ./data/database:/var/lib/mysql
     healthcheck:
