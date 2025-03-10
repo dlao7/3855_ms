@@ -1,0 +1,10 @@
+version: 1
+datastore:
+  filepath: ./data/processing.json
+scheduler:
+  interval: 10
+eventstores:
+  attraction_info:
+    url: http://storage:8090/get/attractions
+  expense_info:
+    url: http://storage:8090/get/expenses

@@ -1,0 +1,154 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Travel Planning API
+  description: This is a simple travel planning API.
+  contact:
+    email: dlao7@my.bcit.ca
+paths:
+  /get/attractions:
+    get:
+      summary: gets new attraction info
+      operationId: app.get_attraction_info
+      description: Gets attraction info added after a timestamp
+      parameters:
+        - name: start_timestamp
+          in: query
+          description: Limits the number of entries returned
+          schema:
+            type: string
+            format: date-time
+            example: 2021-02-05T12:39:16Z
+        - name: end_timestamp
+          in: query
+          description: Limits the number of entries returned
+          schema:
+            type: string
+            format: date-time
+            example: 2021-02-05T12:39:16Z
+      responses:
+        '200':
+          description: Successfully returned a list of attraction events.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AttractionEntry'
+  /get/expenses:
+    get:
+      summary: gets new expense info
+      operationId: app.get_expense_info
+      description: Gets expense info added after a timestamp
+      parameters:
+        - name: start_timestamp
+          in: query
+          description: Limits the number of entries returned
+          schema:
+            type: string
+            format: date-time
+            example: 2021-02-05T12:39:16Z
+        - name: end_timestamp
+          in: query
+          description: Limits the number of entries returned
+          schema:
+            type: string
+            format: date-time
+            example: 2021-02-05T12:39:16Z
+      responses:
+        '200':
+          description: Successfully returned a list of expense events.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExpenseEntry'
+components:
+  schemas:
+    AttractionEntry:
+      type: object
+      required:
+        - id
+        - user_id
+        - attraction_category
+        - hours_open
+        - attraction_timestamp
+        - date_created
+        - trace_id
+      properties:
+        id:
+          type: integer
+          description: mySQL primary key
+          example: 1
+        user_id:
+          type: string
+          description: User ID.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
+        attraction_category:
+          type: string
+          description: The attraction category.
+          example: Museum
+        hours_open:
+          type: integer
+          description: Amount of hours the attraction is open.
+          example: 9
+        attraction_timestamp:
+          type: string
+          description: timestamp when the attraction was added.
+          format: date-time
+          example: '2030-07-08 21:00:49'
+        date_created:
+          type: string
+          description: timestamp when entry was added to database.
+          format: date-time
+          example: '2021-02-05T12:39:16Z'
+        trace_id:
+          type: string
+          description: A unique identifier for the event.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
+    ExpenseEntry:
+      type: object
+      required:
+        - id
+        - user_id
+        - amount
+        - expense_category
+        - expense_timestamp
+        - date_created
+        - trace_id
+      properties:
+        id:
+          type: integer
+          description: mySQL primary key
+          example: 1
+        user_id:
+          type: string
+          description: User ID.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
+        amount:
+          type: number
+          description: The expense amount in CAD.
+          example: 56.60
+        expense_category:
+          type: string
+          description: The expense category.
+          example: Fees
+        expense_timestamp:
+          type: string
+          description: timestamp when the expense was added
+          format: date-time
+          example: '2025-07-08 21:00:49'
+        date_created:
+          type: string
+          description: timestamp when entry was added to database.
+          format: date-time
+          example: '2021-02-05T12:39:16Z'
+        trace_id:
+          type: string
+          description: A unique identifier for the event.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd

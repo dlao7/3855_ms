@@ -1,0 +1,58 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Travel Planning Stats API
+  description: This API provides event stats
+  contact:
+    email: dlao7@my.bcit.ca
+paths:
+  /stats:
+    get:
+      summary: Gets the event stats
+      operationId: app.get_stats
+      description: Gets Attraction and Expenses processed stats.
+      responses:
+        '200':
+          description: Successfully returned the stats.
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: '#/components/schemas/ReadingStats'
+        '400':
+          description: 'Invalid Request'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+components:
+  schemas:
+    ReadingStats:
+      type: object
+      required:
+        - num_attractions
+        - avg_hours_open
+        - num_expenses
+        - avg_amount
+        - last_updated
+      properties:
+        num_attractions:
+          type: integer
+          example: 1000
+        avg_hours_open:
+          type: integer
+          example: 200
+        num_expenses:
+          type: integer
+          example: 1000
+        avg_amount:
+          type: number
+          example: 50.00
+        last_updated:
+          type: string
+          format: date-time
+          example: "2021-02-05T12:39:16Z"

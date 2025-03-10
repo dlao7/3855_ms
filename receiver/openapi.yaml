@@ -1,0 +1,92 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Travel Planning API
+  description: This is a simple travel planning API.
+  contact:
+    email: dlao7@my.bcit.ca
+paths:
+  /info/attractions:
+    post:
+      summary: reports attraction information
+      operationId: app.report_attraction_info
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: 'invalid input, object invalid'
+      requestBody:
+        description: Attractions report to add
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AttractionInfo'
+  /info/expenses:
+    post:
+      summary: reports expense information
+      operationId: app.report_expense_info
+      responses:
+        '201':
+          description: item created
+        '400':
+          description: 'invalid input, object invalid'
+      requestBody:
+        description: Expense report to add
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpenseInfo'
+components:
+  schemas:
+    AttractionInfo:
+      type: object
+      required:
+        - user_id
+        - attraction_category
+        - hours_open
+        - attraction_timestamp
+      properties:
+        user_id:
+          type: string
+          description: User ID.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
+        attraction_category:
+          type: string
+          description: The attraction category.
+          example: Museum
+        hours_open:
+          type: integer
+          description: Amount of hours the attraction is open.
+          example: 9
+        attraction_timestamp:
+          type: string
+          description: timestamp when the attraction was added.
+          format: date-time
+          example: '2030-07-08 21:00:49'
+    ExpenseInfo:
+      type: object
+      required:
+        - user_id
+        - amount
+        - expense_category
+        - expense_timestamp
+      properties:
+        user_id:
+          type: string
+          description: User ID.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
+        amount:
+          type: number
+          description: The expense amount in CAD.
+          example: 56.60
+        expense_category:
+          type: string
+          description: The expense category.
+          example: Fees
+        expense_timestamp:
+          type: string
+          description: timestamp when the expense was added
+          format: date-time
+          example: '2030-07-08 21:00:49'

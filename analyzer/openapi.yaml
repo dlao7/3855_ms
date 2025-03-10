@@ -1,0 +1,172 @@
+openapi: 3.0.0
+info:
+  description: This API provides audit info
+  version: "1.0.0"
+  title: Audit API
+  contact:
+    email: dlao7@my.bcit.ca
+paths:
+  /attr_info:
+    get:
+      summary: gets an attraction info event from history
+      operationId: app.get_attr
+      description: Gets attraction info from the event store
+      parameters:
+        - name: index
+          in: query
+          description: Gets the attraction info at the index in the event store
+          schema:
+            type: integer
+            example: 100
+      responses:
+        '200':
+          description: Successfully returned an attraction info event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AttrInfoEvent'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /exp_info:
+    get:
+      summary: gets an expense info event from history
+      operationId: app.get_exp
+      description: Gets expense info from the event store
+      parameters:
+        - name: index
+          in: query
+          description: Gets the expense info at the index in the event store
+          schema:
+            type: integer
+            example: 100
+      responses:
+        '200':
+          description: Successfully returned an expense info event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpInfoEvent'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+        '404':
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /stats:
+    get:
+      summary: gets the event stats
+      operationId: app.get_event_stats
+      description: Gets the stats of the history events
+      responses:
+        '200':
+            description: Successfully returned stats.
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/Stats'
+
+components:
+  schemas:
+    AttrInfoEvent:
+      type: object
+      required:
+      - user_id
+      - attraction_category
+      - hours_open
+      - attraction_timestamp
+      - trace_id
+      properties:
+        user_id:
+          type: string
+          description: User ID.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
+        attraction_category:
+          type: string
+          description: The attraction category.
+          example: Museum
+        hours_open:
+          type: integer
+          description: Amount of hours the attraction is open.
+          example: 9
+        attraction_timestamp:
+          type: string
+          description: timestamp when the attraction was added.
+          format: date-time
+          example: 2016-08-29T09:12:33.001Z
+        trace_id:
+          type: string
+          description: A unique identifier for the event.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
+    ExpInfoEvent:
+      type: object
+      required:
+        - user_id
+        - amount
+        - expense_category
+        - expense_timestamp
+        - trace_id
+      properties:
+        user_id:
+          type: string
+          description: User ID.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
+        amount:
+          type: number
+          description: The expense amount in CAD.
+          example: 56.60
+        expense_category:
+          type: string
+          description: The expense category.
+          example: Fees
+        expense_timestamp:
+          type: string
+          description: timestamp when the expense was added
+          format: date-time
+          example: 2016-08-29T09:12:33.001Z
+        trace_id:
+          type: string
+          description: A unique identifier for the event.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
+    Stats:
+      required:
+      - num_attr
+      - num_exp
+      properties:
+        num_attr:
+          type: integer
+          example: 100
+        num_exp:
+          type: integer
+          example: 100

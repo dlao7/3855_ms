@@ -1,0 +1,11 @@
+version: 1
+datastore:
+  user: testuser
+  password: testpass
+  hostname: mysqldb
+  port: 3306
+  db: travel_info
+events:
+  hostname: kafka
+  port: 9092
+  topic: events
