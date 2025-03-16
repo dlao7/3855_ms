@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="description" content="ACIT3855 statistics application" />
+    <script src="updateStatsProd.js"></script>
+    <title>Trip Planner</title>
+</head>
+
+<body>
+    <main id="main">
+        <div id="header">
+            <h1>Dashboard</h1>
+        </div>
+        <div style="text-align: center"><img src="plane.jpg" alt="A flying plane" width="300" height="168"></div>
+        <h5 id="last-updated">Last update: <span id="last-updated-value">N/A</span></h5>
+        <div id="messages"></div>
+        <h2>Statistics</h2>
+        <div id="statistics">
+            <div id="processing">
+                <h5>Number of Attractions</h5>
+                <p id="proc_num_attr"></p>
+                <h5>Number of Expenses</h5>
+                <p id="proc_num_exp"></p>
+                <h5>Average Hours Open</h5>
+                <p id="proc_hours"></p>
+                <h5>Average Expense Amount</h5>
+                <p id="proc_amount"></p>
+                <h5>Last Updated</h5>
+                <p id="proc_last_updated"></p>
+            </div>
+            <div id="analyzer">
+                <h5>Number of Attractions</h5>
+                <p id="an_num_attr"></p>
+                <h5>Number of Expenses</h5>
+                <p id="an_num_exp"></p>
+            </div>
+        </div>
+        <h2>Analyzer events</h2>
+        <div id="analyzer">
+            <div>
+                <h3>A Random Attraction Entry</h3>
+                <b>Attraction - User ID</b>
+                <p id="attr_usr"></p>
+                <b>Attraction Category</b>
+                <p id="attr_cat"></p>
+                <b>Attraction Hours Open</b>
+                <p id="attr_hours"></p>
+                <b>Attraction Entry Timestamp</b>
+                <p id="attr_time"></p>
+                <b>Attraction - Trace ID</b>
+                <p id="attr_trace"></p>
+            </div>
+            <div>
+                <h3>A Random Expense Entry</h3>
+                <b>Expense - User ID</b>
+                <p id="exp_usr"></p>
+                <b>Expense Category</b>
+                <p id="exp_cat"></p>
+                <b>Expense Amount</b>
+                <p id="exp_amount"></p>
+                <b>Expense Entry Timestamp</b>
+                <p id="exp_time"></p>
+                <b>Expense - Trace ID</b>
+                <p id="exp_trace"></p>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
