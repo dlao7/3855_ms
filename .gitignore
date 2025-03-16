@@ -4,4 +4,4 @@ logs
 *.prod.yaml
 *.env
 ansible
-config/dashboard/updateStatsProd.js
+*updateStatsProd.js

@@ -21,7 +21,7 @@ const makeReq = (url, cb) => {
     });
 };
 
-function getRandomInt(max) {
+const getRandomInt = (max) => {
   return Math.floor(Math.random() * max);
 }
 
@@ -42,6 +42,7 @@ const makeReqParam = (url, max, cb) => {
       updateErrorMessages(error.message);
     });
 };
+
 const updateProc = (result) => {
   document.getElementById("proc_num_attr").innerText =
     result["num_attractions"];
