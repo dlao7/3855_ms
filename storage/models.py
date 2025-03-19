@@ -28,6 +28,13 @@ class AttractionInfo(Base):
 
         return dict
 
+    def to_dict_id(self):
+        dict = {}
+        dict['user_id'] = self.user_id
+        dict['trace_id'] = self.trace_id
+
+        return dict
+
 
 class ExpenseInfo(Base):
     __tablename__ = "expense_info"
@@ -47,6 +54,13 @@ class ExpenseInfo(Base):
         dict['expense_category'] = self.expense_category
         dict['expense_timestamp'] = self.expense_timestamp
         dict['date_created'] = self.date_created
+        dict['trace_id'] = self.trace_id
+
+        return dict
+
+    def to_dict_id(self):
+        dict = {}
+        dict['user_id'] = self.user_id
         dict['trace_id'] = self.trace_id
 
         return dict

@@ -16,3 +16,4 @@
 * receiver: 8080
 * processing: 8100
 * analyzer: 8200
+* consistency_check: 8300

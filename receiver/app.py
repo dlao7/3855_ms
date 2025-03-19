@@ -65,7 +65,7 @@ def report_expense_info(body):
 
 
 app = connexion.FlaskApp(__name__, specification_dir="")
-app.add_api("openapi.yaml", strict_validation=True, validate_responses=True)
+app.add_api("receiver.yaml", strict_validation=True, validate_responses=True)
 
 
 if __name__ == "__main__":

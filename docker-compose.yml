@@ -1,13 +1,4 @@
 services:
-  dashboard:
-    build:
-      context: dashboard
-      dockerfile: Dockerfile
-    ports:
-      - "80:80"
-    depends_on:
-      - analyzer
-      - processing
   receiver:
     build:
       context: receiver
@@ -60,6 +51,28 @@ services:
         condition: service_healthy
     ports:
       - "8200:8200"
+  dashboard:
+    build:
+      context: dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - analyzer
+      - processing
+  consistency_check:
+    build:
+      context: consistency_check
+      dockerfile: Dockerfile
+    volumes:
+      - ./config/check:/app/config
+      - ./config/logger:/app/logger
+      - ./logs/check:/app/logs
+    ports: "8300:8300"
+    depends_on:
+      - analyzer
+      - processing
+      - storage
   zookeeper:
     image: wurstmeister/zookeeper
     hostname: zookeeper

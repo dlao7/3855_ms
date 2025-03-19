@@ -93,6 +93,52 @@ def get_event_stats():
     }, 200
 
 
+def get_event_ids():
+    consumer = topic.get_simple_consumer(
+        reset_offset_on_start=True, consumer_timeout_ms=1000
+    )
+
+    all_attr = []
+    all_exp = []
+
+    for msg in consumer:
+        msg_str = msg.value.decode("utf-8")
+        msg = json.loads(msg_str)
+
+        if msg["type"] == "attraction_info":
+            attr_ids = { "user_id" : msg["payload"]["user_id"],
+                         "trace_id": msg["payload"]["trace_id"] }
+            all_attr.append(attr_ids)
+        else:
+            exp_ids = { "user_id" : msg["payload"]["user_id"],
+                        "trace_id": msg["payload"]["trace_id"] }
+            all_exp.append(exp_ids)
+
+    logger.info(f"{len(all_attr)} attraction entries' id info found.")
+    logger.info(f"{len(all_exp)} expense entries' id info found.")
+
+    return { "analyzer_attr_ids": all_attr, "analyzer_exp_ids": all_exp }
+
+# def get_exp_id():
+#     consumer = topic.get_simple_consumer(
+#         reset_offset_on_start=True, consumer_timeout_ms=1000
+#     )
+
+#     all_exp = []
+#     for msg in consumer:
+#         msg_str = msg.value.decode("utf-8")
+#         msg = json.loads(msg_str)
+
+#         if msg["type"] == "expense_info":
+#             exp_ids = { "user_id" : msg["payload"]["user_id"],
+#                         "trace_id": msg["payload"]["trace_id"] }
+#             all_exp.append(exp_ids)
+
+#     logger.info(f"{len(all_exp)} expense entries' id info found.")
+
+#     return all_exp
+
+
 def setup_kafka_thread():
     t1 = Thread(target=get_attr)
     t1.setDaemon(True)
@@ -104,7 +150,7 @@ def setup_kafka_thread():
 
 
 app = connexion.FlaskApp(__name__, specification_dir="")
-app.add_api("openapi.yaml", strict_validation=True, validate_responses=True)
+app.add_api("analyzer.yaml", strict_validation=True, validate_responses=True)
 app.add_middleware(
     CORSMiddleware,
     position=MiddlewarePosition.BEFORE_EXCEPTION,
