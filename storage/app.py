@@ -171,24 +171,17 @@ def get_expense_info(start_timestamp, end_timestamp):
     return results
 
 
-def get_records():
+def get_counts():
     session = db.make_session()
 
-    attr_statement = (
-        select(func.count("*")).select_from(models.AttractionInfo)
-    )
+    attr_statement = select(func.count("*")).select_from(models.AttractionInfo)
 
-    exp_statement = (
-        select(func.count("*")).select_from(models.ExpenseInfo)
-    )
+    exp_statement = select(func.count("*")).select_from(models.ExpenseInfo)
 
     num_attr = session.execute(attr_statement)
     num_exp = session.execute(exp_statement)
 
-    results = {
-        "num_attr" : num_attr,
-        "num_exp" : num_exp
-    }
+    results = {"num_attr": num_attr, "num_exp": num_exp}
 
     logger.info(
         f"Found {num_attr} attraction entries and found {num_exp} expense entries."
@@ -199,40 +192,32 @@ def get_records():
     return results
 
 
-def get_full_attr():
+def get_attr_ids():
     session = db.make_session()
 
-    statement = (
-        select(models.AttractionInfo.user_id, models.AttractionInfo.trace_id)
-    )
+    statement = select(models.AttractionInfo.user_id, models.AttractionInfo.trace_id)
 
     results = [
         result.to_dict_id() for result in session.execute(statement).scalars().all()
     ]
 
-    logger.info(
-        "Found %d attraction entries", len(results)
-    )
+    logger.info("Found %d attraction entries", len(results))
 
     session.close()
 
     return results
 
 
-def get_full_exp():
+def get_exp_ids():
     session = db.make_session()
 
-    statement = (
-        select(models.ExpenseInfo.user_id, models.ExpenseInfo.trace_id)
-    )
+    statement = select(models.ExpenseInfo.user_id, models.ExpenseInfo.trace_id)
 
     results = [
         result.to_dict_id() for result in session.execute(statement).scalars().all()
     ]
 
-    logger.info(
-        "Found %d expense entries", len(results)
-    )
+    logger.info("Found %d expense entries", len(results))
 
     session.close()
 

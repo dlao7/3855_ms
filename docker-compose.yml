@@ -65,6 +65,7 @@ services:
       context: consistency_check
       dockerfile: Dockerfile
     volumes:
+      - ./data/check:/app/data
       - ./config/check:/app/config
       - ./config/logger:/app/logger
       - ./logs/check:/app/logs

@@ -92,17 +92,31 @@ paths:
               application/json:
                 schema:
                   $ref: '#/components/schemas/Stats'
+  /analyzer_ids:
+    get:
+      summary: gets the event ids
+      operationId: app.get_event_ids
+      description: Gets the user and trace ids for events.
+      responses:
+        '200':
+            description: Successfully returned id stats.
+            content:
+              application/json:
+                schema:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ArrayIDs'
 
 components:
   schemas:
     AttrInfoEvent:
       type: object
       required:
-      - user_id
-      - attraction_category
-      - hours_open
-      - attraction_timestamp
-      - trace_id
+        - user_id
+        - attraction_category
+        - hours_open
+        - attraction_timestamp
+        - trace_id
       properties:
         user_id:
           type: string
@@ -161,8 +175,8 @@ components:
           example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
     Stats:
       required:
-      - num_attr
-      - num_exp
+        - num_attr
+        - num_exp
       properties:
         num_attr:
           type: integer
@@ -170,3 +184,19 @@ components:
         num_exp:
           type: integer
           example: 100
+    ArrayIDs:
+      type: object
+      required:
+        - user_id
+        - trace_id
+      properties:
+        user_id:
+          type: string
+          description: User ID.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
+        trace_id:
+          type: string
+          description: A unique identifier for the event.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd

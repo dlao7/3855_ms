@@ -34,19 +34,19 @@ components:
     ReadingStats:
       type: object
       required:
-        - num_attractions
+        - num_attr
         - avg_hours_open
-        - num_expenses
+        - num_exp
         - avg_amount
         - last_updated
       properties:
-        num_attractions:
+        num_attr:
           type: integer
           example: 1000
         avg_hours_open:
           type: integer
           example: 200
-        num_expenses:
+        num_exp:
           type: integer
           example: 1000
         avg_amount:

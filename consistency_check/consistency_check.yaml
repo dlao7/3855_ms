@@ -4,7 +4,7 @@ info:
   version: "1.0.0"
   title: Consistency API
   contact:
-    email: student@bcit.ca
+    email: dlao7@bcit.ca
 
 paths:
   /update:
@@ -47,10 +47,10 @@ components:
   schemas:
     Checks:
       required:
-      - counts
-      - not_in_db
-      - not_in_queue
       - last_updated
+      - counts
+      - missing_in_db
+      - missing_in_queue
       type: object
       properties:
         last_updated:
@@ -62,40 +62,44 @@ components:
             db:
               type: object
               properties:
-                event1:
+                attractions:
                   type: integer
-                event2:
+                expenses:
                   type: integer
             queue:
               type: object
               properties:
-                event1:
+                attractions:
                   type: integer
-                event2:
+                expenses:
                   type: integer
             processing:
               type: object
               properties:
-                event1:
+                attractions:
                   type: integer
-                event2:
+                expenses:
                   type: integer
-        not_in_db:
+        missing_in_db:
+          type: array
+          items:
+            type: object
+            properties:
+              user_id:
+                type: string
+                format: uuid
+              trace_id:
+                type: string
+                format: uuid
+        missing_in_queue:
           type: array
           items:
             type: object
             properties:
               event_id:
-                type: integer
-              trace_id:
-                type: integer
-        not_in_queue:
-          type: array
-          items:
-            type: object
-            properties:
-              event_id:
-                type: integer
-              trace_id:
-                type: integer
+                type: string
+                format: uuid
+              user_id:
+                type: string
+                format: uuid
 

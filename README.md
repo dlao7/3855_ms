@@ -1,12 +1,14 @@
-### Folder structure for uncreated folders: ###
+### Folder Structure for Uncreated Folders: ###
 
 ```
 ├── data
+│   ├── check
 │   ├── database
 │   ├── kafka
 │   └── processing
 ├── logs
 │   ├── analyzer
+│   ├── check
 │   ├── processing
 │   ├── receiver
 │   └── storage

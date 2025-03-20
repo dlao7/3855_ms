@@ -64,6 +64,46 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ExpenseEntry'
+  /counts:
+    get:
+      summary: gets event counts
+      operationId: app.get_counts
+      description: Gets counts from database
+      responses:
+        '200':
+          description: Successfully returned count info
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/Counts'
+  /attr_ids:
+    get:
+      summary: gets attraction ids
+      operationId: app.get_attr_ids
+      description: Gets all attraction id information
+      responses:
+        '200':
+          description: Successfully returned a list of attraction ids.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AttractionIds'
+  /exp_ids:
+    get:
+      summary: gets expense ids
+      operationId: app.get_exp_ids
+      description: Gets all expense id information
+      responses:
+        '200':
+          description: Successfully returned a list of expense ids.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ExpenseIds'
 components:
   schemas:
     AttractionEntry:
@@ -147,6 +187,49 @@ components:
           description: timestamp when entry was added to database.
           format: date-time
           example: '2021-02-05T12:39:16Z'
+        trace_id:
+          type: string
+          description: A unique identifier for the event.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
+    Counts:
+      required:
+        - num_attr
+        - num_exp
+      properties:
+        num_attr:
+          type: integer
+          example: 100
+        num_exp:
+          type: integer
+          example: 100
+    AttractionIds:
+      type: object
+      required:
+        - user_id
+        - trace_id
+      properties:
+        user_id:
+          type: string
+          description: User ID.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
+        trace_id:
+          type: string
+          description: A unique identifier for the event.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
+    ExpenseIds:
+      type: object
+      required:
+        - user_id
+        - trace_id
+      properties:
+        user_id:
+          type: string
+          description: User ID.
+          format: uuid
+          example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
         trace_id:
           type: string
           description: A unique identifier for the event.

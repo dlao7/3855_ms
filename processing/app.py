@@ -32,20 +32,18 @@ def calc_stats(past_values, attr, exp):
             [dt.fromisoformat(date["date_created"]) for date in attr]
         )
 
-        if first_timestamp_attr == dt.fromisoformat(past_values["last_updated"]):
-            total_attr = past_values["num_expenses"] + len(exp) - 1
-        else:
-            total_attr = past_values["num_expenses"] + len(exp)
-
         if last_timestamp_attr > dt.fromisoformat(past_values["last_updated"]):
-            # Calculate total attractions
-            total_attr = past_values["num_attractions"] + len(attr)
+            # Calculate total attractions, accounting for one off error
+            if first_timestamp_attr == dt.fromisoformat(past_values["last_updated"]):
+                total_attr = past_values["num_attr"] + len(attr) - 1
+            else:
+                total_attr = past_values["num_attr"] + len(attr)
 
             # Calculate average for new time range
             new_avg_hours = sum([hour["hours_open"] for hour in attr]) / len(attr)
 
             # Weighting
-            past_attr = past_values["num_attractions"] / total_attr
+            past_attr = past_values["num_attr"] / total_attr
             current_attr = len(attr) / total_attr
 
             # Calculate new rolling average
@@ -58,11 +56,11 @@ def calc_stats(past_values, attr, exp):
             )
         else:
             # Use old values if no new entries
-            total_attr = past_values["num_attractions"]
+            total_attr = past_values["num_attr"]
             roll_avg_hours = past_values["avg_hours_open"]
     else:
         # Use old values if no new entries
-        total_attr = past_values["num_attractions"]
+        total_attr = past_values["num_attr"]
         roll_avg_hours = past_values["avg_hours_open"]
 
     if len(exp) != 0:
@@ -74,17 +72,17 @@ def calc_stats(past_values, attr, exp):
         )
 
         if last_timestamp_exp > dt.fromisoformat(past_values["last_updated"]):
-
+            # Calculate total expenses, accounting for one off error
             if first_timestamp_exp == dt.fromisoformat(past_values["last_updated"]):
-                total_exp = past_values["num_expenses"] + len(exp) - 1
+                total_exp = past_values["num_exp"] + len(exp) - 1
             else:
-                total_exp = past_values["num_expenses"] + len(exp)
+                total_exp = past_values["num_exp"] + len(exp)
 
             # Calculate average for new time range
             new_avg_amount = sum([cost["amount"] for cost in exp]) / len(exp)
 
             # Weighting
-            past_exp = past_values["num_expenses"] / total_exp
+            past_exp = past_values["num_exp"] / total_exp
             current_exp = len(exp) / total_exp
 
             # Calculate new rolling average
@@ -92,10 +90,10 @@ def calc_stats(past_values, attr, exp):
                 (new_avg_amount * current_exp + past_values["avg_amount"] * past_exp), 2
             )
         else:
-            total_exp = past_values["num_expenses"]
+            total_exp = past_values["num_exp"]
             roll_avg_amount = past_values["avg_amount"]
     else:
-        total_exp = past_values["num_expenses"]
+        total_exp = past_values["num_exp"]
         roll_avg_amount = past_values["avg_amount"]
 
     # Checks for last timestamp
@@ -116,9 +114,9 @@ def calc_stats(past_values, attr, exp):
 
     # Update with cumulative stats
     updated_stats = {
-        "num_attractions": total_attr,
+        "num_attr": total_attr,
         "avg_hours_open": roll_avg_hours,
-        "num_expenses": total_exp,
+        "num_exp": total_exp,
         "avg_amount": roll_avg_amount,
         "last_updated": last_updated,
     }
@@ -145,9 +143,9 @@ def populate_stats():
     except FileNotFoundError:
         start_time = "1970-01-01T00:00:00Z"
         stat_file = {
-            "num_attractions": 0,
+            "num_attr": 0,
             "avg_hours_open": 0,
-            "num_expenses": 0,
+            "num_exp": 0,
             "avg_amount": 0,
             "last_updated": "1970-01-01T00:00:00Z",
         }
@@ -198,9 +196,9 @@ def populate_stats():
         json.dump(updated_stats, w, indent=4)
 
     update_string = (
-        f"num_attr:{updated_stats["num_attractions"]}, "
+        f"num_attr:{updated_stats["num_attr"]}, "
         f"avg_hours_open:{updated_stats["avg_hours_open"]}, "
-        f"num_expenses:{updated_stats["num_expenses"]}, "
+        f"num_exp:{updated_stats["num_exp"]}, "
         f"avg_amount:{updated_stats["avg_amount"]}, "
         f"last_updated:{updated_stats["last_updated"]}"
     )

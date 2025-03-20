@@ -1,0 +1,16 @@
+version: 1
+datastore:
+  filepath: ./data/check.json
+eventstores:
+  proc_stats:
+    url: http://processing:8100/stats
+  analyzer_counts:
+    url: http://analyzer:8200/stats
+  analyzer_ids:
+    url: http://analyzer:8200/analyzer_ids
+  storage_counts:
+    url: http://storage:8090/counts
+  storage_attr_ids:
+    url: http://storage:8090/attr_ids
+  storage_exp_ids:
+    url: http://storage:8090/exp_ids
