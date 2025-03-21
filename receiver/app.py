@@ -1,18 +1,24 @@
-import connexion
-from connexion import NoContent
+"""
+Receiver service to accept event entries from post requests
+and publish them to a Kafka queue.
+"""
+
+from datetime import datetime as dt
+import json
 import logging.config
 import uuid
+
+import connexion
+from connexion import NoContent
 import yaml
-import json
-from datetime import datetime as dt
 from pykafka import KafkaClient
 
 # Endpoint configuration
-with open("config/receiver.prod.yaml", "r") as f:
+with open("config/receiver.prod.yaml", "r", encoding="utf-8") as f:
     app_config = yaml.safe_load(f.read())
 
 # Logging
-with open("logger/log.prod.yaml", "r") as f:
+with open("logger/log.prod.yaml", "r", encoding="utf-8") as f:
     log_config = yaml.safe_load(f.read())
     logging.config.dictConfig(log_config)
 
@@ -20,7 +26,8 @@ logger = logging.getLogger("basicLogger")
 
 
 def make_log(event_type, trace_id):
-    logger.info(f"Received event {event_type} with a trace id of {trace_id}")
+    """Creates log for events with type and trace ID."""
+    logger.info("Received event %s with a trace id of %s", event_type, trace_id)
 
 
 # Kafka variables
@@ -33,6 +40,26 @@ producer = topic.get_sync_producer()
 
 # Endpoints
 def report_attraction_info(body):
+    """Recieves JSON from post request and
+    attaches attraction type and time received
+    and publishes this message to the Kafka
+    queue.
+
+    Parameters:
+    body (JSON): contains attraction event
+    information including user id, attraction
+    category, attraction time stamp and hours open.
+
+    Example body:
+      {
+      "user_id": "fa2e2624-daff-43c3-82cd-c1ced1095ccd",
+      "attraction_category": "Test",
+      "hours_open": 5,
+      "attraction_timestamp": "2030-07-08 21:00:49"
+      }
+
+    Returns: None
+    """
     body["trace_id"] = str(uuid.uuid4())
     make_log("attraction_info", body["trace_id"])
 
@@ -43,12 +70,32 @@ def report_attraction_info(body):
     }
     msg_str = json.dumps(msg)
     producer.produce(msg_str.encode("utf-8"))
-    logger.info(f"Attraction Event posted to Kafka with trace_id {body["trace_id"]}.")
+    logger.info("Attraction Event posted to Kafka with trace_id %s.", body["trace_id"])
 
     return NoContent, 201
 
 
 def report_expense_info(body):
+    """Recieves JSON from post request and
+    attaches expense type and time received
+    and publishes this message to the Kafka
+    queue.
+
+    Parameters:
+    body (JSON): contains expense event
+    information including user id, expense
+    category, expense time stamp and amount.
+
+    Example body:
+      {
+      "user_id": "fa2e2624-daff-43c3-82cd-c1ced1095ccd",
+      "amount": 55.00,
+      "expense_category": "Test",
+      "expense_timestamp":"2025-07-08 21:00:49"
+      }
+
+    Returns: None
+    """
     body["trace_id"] = str(uuid.uuid4())
     make_log("expense_info", body["trace_id"])
 
@@ -59,7 +106,7 @@ def report_expense_info(body):
     }
     msg_str = json.dumps(msg)
     producer.produce(msg_str.encode("utf-8"))
-    logger.info(f"Expense Event posted to Kafka with trace_id {body["trace_id"]}.")
+    logger.info("Expense Event posted to Kafka with trace_id %s.", body["trace_id"])
 
     return NoContent, 201
 

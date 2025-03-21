@@ -20,8 +20,6 @@ services:
       - ./config/storage:/app/config
       - ./config/logger:/app/logger
       - ./logs/storage:/app/logs
-    ports:
-      - "8090:8090"
     depends_on:
       mysqldb:
         condition: service_healthy
@@ -36,10 +34,10 @@ services:
       - ./config/processing:/app/config
       - ./config/logger:/app/logger
       - ./logs/processing:/app/logs
-    depends_on:
-      - storage
     ports:
       - "8100:8100"
+    depends_on:
+      - storage
   analyzer:
     build:
       context: analyzer
@@ -48,11 +46,11 @@ services:
       - ./config/analyzer:/app/config
       - ./config/logger:/app/logger
       - ./logs/analyzer:/app/logs
+    ports:
+      - "8200:8200"
     depends_on:
       kafka:
         condition: service_healthy
-    ports:
-      - "8200:8200"
   dashboard:
     build:
       context: dashboard

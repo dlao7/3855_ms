@@ -13,7 +13,7 @@ const getRandomInt = (max) => {
   return Math.floor(Math.random() * max);
 };
 
-// This function fetches and updates the general statistics
+// Requests
 const makeReq = (url, cb) => {
   fetch(url)
     .then((res) => res.json())
@@ -26,22 +26,26 @@ const makeReq = (url, cb) => {
     });
 };
 
-const makeReqParam = (url, max, cb) => {
-  if (url == ANALYZER_API_URL.attr_info) {
-    max_sp = max["num_attr"];
+const makeParamReq = (url, stats, cb) => {
+  if (url === ANALYZER_API_URL.attr_info) {
+    max = stats["num_attr"];
   } else {
-    max_sp = max["num_exp"];
+    max = stats["num_exp"];
   }
 
-  fetch(`${url}?index=${getRandomInt(max_sp)}`)
-    .then((res) => res.json())
-    .then((result) => {
-      console.log("Received data: ", result);
-      cb(result);
-    })
-    .catch((error) => {
-      updateErrorMessages(error.message);
-    });
+  if (max === 0) {
+    cb(0);
+  } else {
+    fetch(`${url}?index=${getRandomInt(max_sp)}`)
+      .then((res) => res.json())
+      .then((result) => {
+        console.log("Received data: ", result);
+        cb(result);
+      })
+      .catch((error) => {
+        updateErrorMessages(error.message);
+      });
+  }
 };
 
 const makePostReq = (url, cb) => {
@@ -56,6 +60,7 @@ const makePostReq = (url, cb) => {
     });
 };
 
+// Page Updates
 const updateProc = (result) => {
   document.getElementById("proc_num_attr").innerText = result["num_attr"];
   document.getElementById("proc_num_exp").innerText = result["num_exp"];
@@ -71,20 +76,37 @@ const updateAnSt = (result) => {
 };
 
 const updateAttr = (result) => {
-  document.getElementById("attr_usr").innerText = result["user_id"];
-  document.getElementById("attr_cat").innerText = result["attraction_category"];
-  document.getElementById("attr_hours").innerText = result["hours_open"];
-  document.getElementById("attr_time").innerText =
-    result["attraction_timestamp"];
-  document.getElementById("attr_trace").innerText = result["trace_id"];
+  if (result === 0) {
+    document.getElementById("attr_usr").innerText = "N/A";
+    document.getElementById("attr_cat").innerText = "N/A";
+    document.getElementById("attr_hours").innerText = "N/A";
+    document.getElementById("attr_time").innerText = "N/A";
+    document.getElementById("attr_trace").innerText = "N/A";
+  } else {
+    document.getElementById("attr_usr").innerText = result["user_id"];
+    document.getElementById("attr_cat").innerText =
+      result["attraction_category"];
+    document.getElementById("attr_hours").innerText = result["hours_open"];
+    document.getElementById("attr_time").innerText =
+      result["attraction_timestamp"];
+    document.getElementById("attr_trace").innerText = result["trace_id"];
+  }
 };
 
 const updateExp = (result) => {
-  document.getElementById("exp_usr").innerText = result["user_id"];
-  document.getElementById("exp_cat").innerText = result["expense_category"];
-  document.getElementById("exp_amount").innerText = `${result["amount"]}`;
-  document.getElementById("exp_time").innerText = result["expense_timestamp"];
-  document.getElementById("exp_trace").innerText = result["trace_id"];
+  if (result === 0) {
+    document.getElementById("exp_usr").innerText = "N/A";
+    document.getElementById("exp_cat").innerText = "N/A";
+    document.getElementById("exp_amount").innerText = "N/A";
+    document.getElementById("exp_time").innerText = "N/A";
+    document.getElementById("exp_trace").innerText = "N/A";
+  } else {
+    document.getElementById("exp_usr").innerText = result["user_id"];
+    document.getElementById("exp_cat").innerText = result["expense_category"];
+    document.getElementById("exp_amount").innerText = `${result["amount"]}`;
+    document.getElementById("exp_time").innerText = result["expense_timestamp"];
+    document.getElementById("exp_trace").innerText = result["trace_id"];
+  }
 };
 
 const updateCheck = (result) => {
@@ -122,6 +144,7 @@ const updateCheck = (result) => {
   });
 };
 
+// Statistics Gathering
 const getLocaleDateStr = () => new Date().toLocaleString();
 
 const getStats = () => {
@@ -129,13 +152,15 @@ const getStats = () => {
 
   makeReq(PROCESSING_STATS_API_URL, (result) => updateProc(result));
   makeReq(ANALYZER_API_URL.stats, (result) => updateAnSt(result));
-  makeReq(ANALYZER_API_URL.stats, (max) =>
-    makeReqParam(ANALYZER_API_URL.attr_info, max, (result) =>
+  makeReq(ANALYZER_API_URL.stats, (stats) =>
+    makeParamReq(ANALYZER_API_URL.attr_info, stats, (result) =>
       updateAttr(result)
     )
   );
-  makeReq(ANALYZER_API_URL.stats, (max) =>
-    makeReqParam(ANALYZER_API_URL.exp_info, max, (result) => updateExp(result))
+  makeReq(ANALYZER_API_URL.stats, (stats) =>
+    makeParamReq(ANALYZER_API_URL.exp_info, stats, (result) =>
+      updateExp(result)
+    )
   );
 };
 

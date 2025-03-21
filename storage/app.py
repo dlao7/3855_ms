@@ -1,25 +1,32 @@
-import connexion
-import functools
-import logging.config
-import yaml
-import json
-import db
-import models
+"""
+Storage service to consume messages from the Kafka queue to insert into
+a mySQL database, and retrieve entries between specific timestamps,
+user and trace ids, and counts from the mySQL database.
+"""
+
 from datetime import datetime as dt
+import json
+import logging.config
+from threading import Thread
+import functools
+
+import connexion
+import yaml
+
 from sqlalchemy import select, func
 from pykafka import KafkaClient
 from pykafka.common import OffsetType
-from threading import Thread
+
+import db
+import models
 import create_db
-from connexion.middleware import MiddlewarePosition
-from starlette.middleware.cors import CORSMiddleware
 
 # App Config
-with open("config/storage.prod.yaml", "r") as f:
+with open("config/storage.prod.yaml", "r", encoding="utf-8") as f:
     app_config = yaml.safe_load(f.read())
 
 # Logging
-with open("logger/log.prod.yaml", "r") as f:
+with open("logger/log.prod.yaml", "r", encoding="utf-8") as f:
     log_config = yaml.safe_load(f.read())
     logging.config.dictConfig(log_config)
 
@@ -28,10 +35,15 @@ logger = logging.getLogger("basicLogger")
 
 
 def log_event(event_type, trace_id):
-    logger.debug(f"Stored event {event_type} with a trace id of {trace_id}")
+    """Creates log for events with type and trace ID."""
+    logger.debug("Stored event %s with a trace id of %s", event_type, trace_id)
 
 
 def use_db_session(func):
+    """Decorator to create SQLAlchemy session and then commit and close the
+    session.
+    """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         session = db.make_session()
@@ -46,7 +58,7 @@ def use_db_session(func):
 
 @use_db_session
 def process_messages(session):
-    """Process event messages"""
+    """Consumes Kafka queue messages and inserts them into mySQL database."""
     hostname = f"{app_config['events']['hostname']}:{app_config['events']['port']}"
     client = KafkaClient(hosts=hostname)
     topic = client.topics[str.encode(f"{app_config['events']['topic']}")]
@@ -65,7 +77,7 @@ def process_messages(session):
     for msg in consumer:
         msg_str = msg.value.decode("utf-8")
         msg = json.loads(msg_str)
-        logger.info("Message: %s" % msg)
+        logger.info("Message: %s", msg)
 
         payload = msg["payload"]
 
@@ -75,7 +87,8 @@ def process_messages(session):
             session.commit()
 
             logger.info(
-                f"Attraction event with trace id {payload["trace_id"]} stored via Kafka."
+                "Attraction event with trace id %s stored via Kafka.",
+                payload["trace_id"],
             )
         elif msg["type"] == "expense_info":
 
@@ -83,7 +96,7 @@ def process_messages(session):
             session.commit()
 
             logger.info(
-                f"Expense event with trace id {payload["trace_id"]} stored via Kafka."
+                "Expense event with trace id %s stored via Kafka.", payload["trace_id"]
             )
 
         # Commit the new message as being read
@@ -91,12 +104,14 @@ def process_messages(session):
 
 
 def setup_kafka_thread():
+    """Creates thread for Kafka consumer."""
     t1 = Thread(target=process_messages)
-    t1.setDaemon(True)
+    t1.daemon = True
     t1.start()
 
 
 def report_attraction_info(body):
+    """Constructs attraction database entry for submission to a mySQL database."""
     event = models.AttractionInfo(
         user_id=body["user_id"],
         attraction_category=body["attraction_category"],
@@ -110,6 +125,7 @@ def report_attraction_info(body):
 
 
 def report_expense_info(body):
+    """Constructs expense database entry for submission to a mySQL database."""
     event = models.ExpenseInfo(
         user_id=body["user_id"],
         amount=body["amount"],
@@ -122,7 +138,8 @@ def report_expense_info(body):
 
 
 def get_attraction_info(start_timestamp, end_timestamp):
-    """Gets new attraction entries between the start and end timestamps"""
+    """Gets new attraction entries from the mySQL database between the start and end timestamps
+    and returns the result as a list of dictionaries."""
     session = db.make_session()
 
     start = dt.fromisoformat(start_timestamp)
@@ -148,7 +165,8 @@ def get_attraction_info(start_timestamp, end_timestamp):
 
 
 def get_expense_info(start_timestamp, end_timestamp):
-    """Gets new expense entries between the start and end timestamps"""
+    """Gets new expense entries from the mySQL database between the start and end timestamps
+    and returns the result as a list of dictionaries."""
     session = db.make_session()
 
     start = dt.fromisoformat(start_timestamp)
@@ -174,6 +192,7 @@ def get_expense_info(start_timestamp, end_timestamp):
 
 
 def get_counts():
+    """Gets counts of each event from the mySQL database."""
     session = db.make_session()
 
     attr_statement = select(func.count("*")).select_from(models.AttractionInfo)
@@ -185,7 +204,7 @@ def get_counts():
     results = {"num_attr": num_attr.scalar(), "num_exp": num_exp.scalar()}
 
     logger.info(
-        f"Found {num_attr} attraction entries and found {num_exp} expense entries."
+        "Found %s attraction entries and found %s expense entries.", num_attr, num_exp
     )
 
     session.close()
@@ -194,6 +213,8 @@ def get_counts():
 
 
 def get_attr_ids():
+    """Gets all user and trace IDs of attraction events from the mySQL database and
+    returns them as a list of dictionaries."""
     session = db.make_session()
 
     statement = select(models.AttractionInfo)
@@ -210,6 +231,8 @@ def get_attr_ids():
 
 
 def get_exp_ids():
+    """Gets all user and trace IDs of expense events from the mySQL database and
+    returns them as a list of dictionaries."""
     session = db.make_session()
 
     statement = select(models.ExpenseInfo)
@@ -222,19 +245,11 @@ def get_exp_ids():
 
     session.close()
 
-    return results, 200
+    return results
 
 
 app = connexion.FlaskApp(__name__, specification_dir="")
 app.add_api("storage.yaml", strict_validation=True, validate_responses=True)
-app.add_middleware(
-    CORSMiddleware,
-    position=MiddlewarePosition.BEFORE_EXCEPTION,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 if __name__ == "__main__":

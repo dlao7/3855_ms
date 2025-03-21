@@ -1,27 +1,25 @@
-# Connexion
-import connexion
+"""
+Consistency check service to gather information from processing, storage
+and analyzer services about the counts and user/trace ids for comparison.
+"""
 
-# Basic Modules
 import time
-import yaml
+from datetime import timezone, datetime as dt
 import json
 import logging.config
+
+import connexion
+import yaml
 import httpx
-from datetime import timezone, datetime as dt
 from connexion.middleware import MiddlewarePosition
 from starlette.middleware.cors import CORSMiddleware
 
-# add documentation to all apps
-# create bind mount folders in ansible script
-# # log, config, json
-# test deployment
-
 # App Config
-with open("config/check.prod.yaml", "r") as f:
+with open("config/check.prod.yaml", "r", encoding="utf-8") as f:
     app_config = yaml.safe_load(f.read())
 
 # Logging
-with open("logger/log.prod.yaml", "r") as f:
+with open("logger/log.prod.yaml", "r", encoding="utf-8") as f:
     log_config = yaml.safe_load(f.read())
     logging.config.dictConfig(log_config)
 
@@ -29,6 +27,24 @@ logger = logging.getLogger("basicLogger")
 
 
 def compare_ids(analyzer_data, storage_data):
+    """Compares the input ID lists from storage and analyzer
+    by trace_id and outputs the differences.
+
+    Parameters:
+    analyzer_data (list): list of dictionaries with user and
+    trace ids, from the analyzer service
+    storage_data (list): list of dictionaries with user and
+    trace ids, from the storage service
+
+    Returns:
+    A tuple with two lists with the trace/user id entries
+    that are either missing in the mySQL database
+    or missing in the Kafka queue.
+
+    Example of array
+    [ {"user_id": "XXXX", "trace_id": "XXXX"},
+    {"user_id": "XXXX", "trace_id": "XXXX"} ]
+    """
     # Kafka Queue Entries
     analyzer_set = {item["trace_id"] for item in analyzer_data}
 
@@ -52,45 +68,40 @@ def compare_ids(analyzer_data, storage_data):
 
 
 def run_consistency_checks():
+    """Gathers the counts and ID statistics from storage,
+    processing, and analyzer microservices and writes
+    the information in a dictionary to a JSON file.
+
+    Returns:
+    A JSON with the gathered statistics
+    """
     # log info started processing
-    logger.info(f"Consistency checks started.")
+    logger.info("Consistency checks started.")
     start_time = time.time()
 
     # get storage counts
-    storage_counts_resp = httpx.get(app_config["eventstores"]["storage_counts"]["url"])
+    storage_counts = httpx.get(
+        app_config["eventstores"]["storage_counts"]["url"]
+    ).json()
 
     # get storage ids
-    storage_attr_ids_resp = httpx.get(
+    storage_attr_ids = httpx.get(
         app_config["eventstores"]["storage_attr_ids"]["url"]
-    )
-    storage_exp_ids_resp = httpx.get(
+    ).json()
+    storage_exp_ids = httpx.get(
         app_config["eventstores"]["storage_exp_ids"]["url"]
-    )
+    ).json()
 
     # get analyzer counts
-    analyzer_counts_resp = httpx.get(
+    analyzer_counts = httpx.get(
         app_config["eventstores"]["analyzer_counts"]["url"]
-    )
+    ).json()
 
     # get analyzer ids
-    analyzer_ids_resp = httpx.get(app_config["eventstores"]["analyzer_ids"]["url"])
+    analyzer_ids = httpx.get(app_config["eventstores"]["analyzer_ids"]["url"]).json()
 
     # get processing stats
-    proc_stats_resp = httpx.get(app_config["eventstores"]["proc_stats"]["url"])
-
-    # JSON response conversion
-    storage_counts = storage_counts_resp.json()
-    storage_attr_ids, storage_exp_ids = (
-        storage_attr_ids_resp.json(),
-        storage_exp_ids_resp.json(),
-    )
-
-    analyzer_counts, analyzer_ids = (
-        analyzer_counts_resp.json(),
-        analyzer_ids_resp.json(),
-    )
-
-    proc_stats = proc_stats_resp.json()
+    proc_stats = httpx.get(app_config["eventstores"]["proc_stats"]["url"]).json()
 
     # Combine the id entries from storage
     all_storage_ids = storage_attr_ids + storage_exp_ids
@@ -123,7 +134,7 @@ def run_consistency_checks():
     }
 
     # write to file
-    with open(app_config["datastore"]["filepath"], "w") as w:
+    with open(app_config["datastore"]["filepath"], "w", encoding="utf-8") as w:
         json.dump(check_stats, w, indent=4)
 
     end_time = time.time()
@@ -133,7 +144,8 @@ def run_consistency_checks():
 
     # log processing time and missing stats
     logger.info(
-        f"Consistency checks completed | processing_time_ms={elapsed_time} | missing_in_db = {len(missing_in_db)} | missing_in_queue = {len(missing_in_queue)}"
+        f"Consistency checks completed | processing_time_ms={elapsed_time}"
+        f" | missing_in_db = {len(missing_in_db)} | missing_in_queue = {len(missing_in_queue)}"
     )
 
     # return JSON
@@ -141,10 +153,20 @@ def run_consistency_checks():
 
 
 def get_checks():
+    """Reads the consistency check JSON file and
+    returns the JSON.
+
+    Returns:
+    The JSON from the check JSON file with the
+    gathered counts and missing ID entries.
+    """
+
     logger.info("A request to get consistency check stats was received.")
 
     try:
-        with open(app_config["datastore"]["filepath"], "r") as read_content:
+        with open(
+            app_config["datastore"]["filepath"], "r", encoding="utf-8"
+        ) as read_content:
             check_file = json.load(read_content)
     except FileNotFoundError:
         logger.error("The check stats file does not exist.")
