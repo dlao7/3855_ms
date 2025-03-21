@@ -7,6 +7,11 @@ const ANALYZER_API_URL = {
   attr_info: `http://${CLOUD_DNS}:8200/attr_info`,
   exp_info: `http://${CLOUD_DNS}:8200/exp_info`,
 };
+const CHECK_API_URL = `http://${CLOUD_DNS}:8300/update`;
+
+const getRandomInt = (max) => {
+  return Math.floor(Math.random() * max);
+};
 
 // This function fetches and updates the general statistics
 const makeReq = (url, cb) => {
@@ -20,10 +25,6 @@ const makeReq = (url, cb) => {
       updateErrorMessages(error.message);
     });
 };
-
-const getRandomInt = (max) => {
-  return Math.floor(Math.random() * max);
-}
 
 const makeReqParam = (url, max, cb) => {
   if (url == ANALYZER_API_URL.attr_info) {
@@ -43,10 +44,21 @@ const makeReqParam = (url, max, cb) => {
     });
 };
 
+const makePostReq = (url, cb) => {
+  fetch(url, { method: "post" })
+    .then((res) => res.json())
+    .then((result) => {
+      console.log("Received data: ", result);
+      cb(result);
+    })
+    .catch((error) => {
+      updateErrorMessages(error.message);
+    });
+};
+
 const updateProc = (result) => {
-  document.getElementById("proc_num_attr").innerText =
-    result["num_attractions"];
-  document.getElementById("proc_num_exp").innerText = result["num_expenses"];
+  document.getElementById("proc_num_attr").innerText = result["num_attr"];
+  document.getElementById("proc_num_exp").innerText = result["num_exp"];
   document.getElementById("proc_hours").innerText = result["avg_hours_open"];
   document.getElementById("proc_amount").innerText = result["avg_amount"];
   document.getElementById("proc_last_updated").innerText =
@@ -73,6 +85,41 @@ const updateExp = (result) => {
   document.getElementById("exp_amount").innerText = `${result["amount"]}`;
   document.getElementById("exp_time").innerText = result["expense_timestamp"];
   document.getElementById("exp_trace").innerText = result["trace_id"];
+};
+
+const updateCheck = (result) => {
+  document.getElementById("db_attr").innerText =
+    result["counts"]["db"]["attractions"];
+  document.getElementById("db_exp").innerText =
+    result["counts"]["db"]["expenses"];
+
+  document.getElementById("proc_attr").innerText =
+    result["counts"]["processing"]["attractions"];
+  document.getElementById("proc_exp").innerText =
+    result["counts"]["processing"]["expenses"];
+
+  document.getElementById("queue_attr").innerText =
+    result["counts"]["queue"]["attractions"];
+  document.getElementById("queue_exp").innerText =
+    result["counts"]["queue"]["expenses"];
+
+  const missing_db = document.getElementById("missing_db");
+  missing_db.innerHTML = "";
+
+  result["missing_in_db"].forEach((element) => {
+    const listItem = document.createElement("li");
+    listItem.textContent = JSON.stringify(element).slice(1, -1);
+    missing_db.appendChild(listItem);
+  });
+
+  const missing_queue = document.getElementById("missing_queue");
+  missing_queue.innerHTML = "";
+
+  result["missing_in_queue"].forEach((element) => {
+    const listItem = document.createElement("li");
+    listItem.textContent = JSON.stringify(element).slice(1, -1);
+    missing_queue.appendChild(listItem);
+  });
 };
 
 const getLocaleDateStr = () => new Date().toLocaleString();
@@ -107,6 +154,13 @@ const updateErrorMessages = (message) => {
     }
   }, 7000);
 };
+
+const button = document.querySelector("#post-btn");
+button.addEventListener(
+  "click",
+  () => makePostReq(CHECK_API_URL, (result) => updateCheck(result)),
+  { capture: true }
+);
 
 const setup = () => {
   getStats();

@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
     <meta name="description" content="ACIT3855 statistics application" />
-    <script src="updateStatsProd.js"></script>
+    <script defer src="updateStatsProd.js"></script>
     <title>Trip Planner</title>
 </head>
 
@@ -67,6 +67,42 @@
                 <p id="exp_time"></p>
                 <b>Expense - Trace ID</b>
                 <p id="exp_trace"></p>
+            </div>
+        </div>
+        <h2>Consistency Check Stats</h2>
+        <div>
+            <button id="post-btn">Update Consistency Check Stats</button>
+        </div>
+        <div id="check">
+            <div>
+                <table><thead>
+                    <tr>
+                      <th></th>
+                      <th>Attractions</th>
+                      <th>Expenses</th>
+                    </tr></thead>
+                  <tbody>
+                    <tr>
+                      <td>Database</td>
+                      <td id="db_attr"></td>
+                      <td id="db_exp"></td>
+                    </tr>
+                    <tr>
+                      <td>Processing</td>
+                      <td id="proc_attr"></td>
+                      <td id="proc_exp"></td>
+                    </tr>
+                    <tr>
+                      <td>Queue</td>
+                      <td id="queue_attr"></td>
+                      <td id="queue_exp"></td>
+                    </tr>
+                  </tbody>
+                  </table>
+                <b>Missing in Database</b>
+                <ul id="missing_db"></ul>
+                <b>Missing in Queue</b>
+                <ul id="missing_queue"></ul>
             </div>
         </div>
     </main>

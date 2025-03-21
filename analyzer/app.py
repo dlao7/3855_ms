@@ -19,7 +19,7 @@ with open("logger/log.prod.yaml", "r") as f:
 
 logger = logging.getLogger("basicLogger")
 
-
+# Kafka Client Settings
 hostname = f"{app_config['events']['hostname']}:{app_config['events']['port']}"
 client = KafkaClient(hosts=hostname)
 topic = client.topics[str.encode(f"{app_config['events']['topic']}")]
@@ -113,30 +113,6 @@ def get_event_ids():
     logger.info(f"{len(all_entries)} entry ids found.")
 
     return all_entries, 200
-
-
-# def get_exp_id():
-#     consumer = topic.get_simple_consumer(
-#         reset_offset_on_start=True, consumer_timeout_ms=1000
-#     )
-
-#       if msg["type"] == "attraction_info":
-#         attr_ids = { "user_id" : msg["payload"]["user_id"],
-#                      "trace_id": msg["payload"]["trace_id"] }
-#         all_attr.append(attr_ids)
-#     else:
-#         exp_ids = { "user_id" : msg["payload"]["user_id"],
-#                     "trace_id": msg["payload"]["trace_id"] }
-#         all_exp.append(exp_ids)
-
-# logger.info(f"{len(all_attr)} attraction entries' id info found.")
-# logger.info(f"{len(all_exp)} expense entries' id info found.")
-
-# return { "analyzer_attr_ids": all_attr, "analyzer_exp_ids": all_exp }, 200
-
-#     logger.info(f"{len(all_exp)} expense entries' id info found.")
-
-#     return all_exp
 
 
 def setup_kafka_thread():

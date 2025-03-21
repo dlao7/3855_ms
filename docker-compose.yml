@@ -20,6 +20,8 @@ services:
       - ./config/storage:/app/config
       - ./config/logger:/app/logger
       - ./logs/storage:/app/logs
+    ports:
+      - "8090:8090"
     depends_on:
       mysqldb:
         condition: service_healthy
@@ -69,7 +71,8 @@ services:
       - ./config/check:/app/config
       - ./config/logger:/app/logger
       - ./logs/check:/app/logs
-    ports: "8300:8300"
+    ports:
+      - "8300:8300"
     depends_on:
       - analyzer
       - processing

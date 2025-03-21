@@ -1,6 +1,5 @@
 # Connexion
 import connexion
-from connexion import NoContent
 
 # Basic Modules
 import time
@@ -9,14 +8,10 @@ import json
 import logging.config
 import httpx
 from datetime import timezone, datetime as dt
+from connexion.middleware import MiddlewarePosition
+from starlette.middleware.cors import CORSMiddleware
 
-# test analyzer endpoints
-# test storage endpoints
-# test compose up
-
-# test if there are no missing entries
-# test how to remove specific entries and have them show up in stats
-
+# add documentation to all apps
 # create bind mount folders in ansible script
 # # log, config, json
 # test deployment
@@ -40,7 +35,7 @@ def compare_ids(analyzer_data, storage_data):
     # mySQL Database Entries
     storage_set = {item["trace_id"] for item in storage_data}
 
-    # present in queue, not in db (missing from db)
+    # present in queue, not in db (missing in db)
     missing_trace_db = analyzer_set.difference(storage_set)
     missing_in_db = [
         entry for entry in analyzer_data if entry["trace_id"] in missing_trace_db
@@ -79,6 +74,7 @@ def run_consistency_checks():
 
     # get analyzer ids
     analyzer_ids_resp = httpx.get(app_config["eventstores"]["analyzer_ids"]["url"])
+
     # get processing stats
     proc_stats_resp = httpx.get(app_config["eventstores"]["proc_stats"]["url"])
 
@@ -164,6 +160,15 @@ def get_checks():
 
 app = connexion.FlaskApp(__name__, specification_dir="")
 app.add_api("consistency_check.yaml", strict_validation=True, validate_responses=True)
+app.add_middleware(
+    CORSMiddleware,
+    position=MiddlewarePosition.BEFORE_EXCEPTION,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 if __name__ == "__main__":
     app.run(port=8300, host="0.0.0.0")

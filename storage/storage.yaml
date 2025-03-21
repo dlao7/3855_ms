@@ -193,6 +193,7 @@ components:
           format: uuid
           example: fa2e2624-daff-43c3-82cd-c1ced1095ccd
     Counts:
+      type: object
       required:
         - num_attr
         - num_exp

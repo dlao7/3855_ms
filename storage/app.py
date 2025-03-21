@@ -11,6 +11,8 @@ from pykafka import KafkaClient
 from pykafka.common import OffsetType
 from threading import Thread
 import create_db
+from connexion.middleware import MiddlewarePosition
+from starlette.middleware.cors import CORSMiddleware
 
 # App Config
 with open("config/storage.prod.yaml", "r") as f:
@@ -175,13 +177,12 @@ def get_counts():
     session = db.make_session()
 
     attr_statement = select(func.count("*")).select_from(models.AttractionInfo)
-
     exp_statement = select(func.count("*")).select_from(models.ExpenseInfo)
 
     num_attr = session.execute(attr_statement)
     num_exp = session.execute(exp_statement)
 
-    results = {"num_attr": num_attr, "num_exp": num_exp}
+    results = {"num_attr": num_attr.scalar(), "num_exp": num_exp.scalar()}
 
     logger.info(
         f"Found {num_attr} attraction entries and found {num_exp} expense entries."
@@ -195,13 +196,13 @@ def get_counts():
 def get_attr_ids():
     session = db.make_session()
 
-    statement = select(models.AttractionInfo.user_id, models.AttractionInfo.trace_id)
+    statement = select(models.AttractionInfo)
 
     results = [
         result.to_dict_id() for result in session.execute(statement).scalars().all()
     ]
 
-    logger.info("Found %d attraction entries", len(results))
+    logger.info("Found %d attraction id entries", len(results))
 
     session.close()
 
@@ -211,21 +212,29 @@ def get_attr_ids():
 def get_exp_ids():
     session = db.make_session()
 
-    statement = select(models.ExpenseInfo.user_id, models.ExpenseInfo.trace_id)
+    statement = select(models.ExpenseInfo)
 
     results = [
         result.to_dict_id() for result in session.execute(statement).scalars().all()
     ]
 
-    logger.info("Found %d expense entries", len(results))
+    logger.info("Found %d expense id entries", len(results))
 
     session.close()
 
-    return results
+    return results, 200
 
 
 app = connexion.FlaskApp(__name__, specification_dir="")
 app.add_api("storage.yaml", strict_validation=True, validate_responses=True)
+app.add_middleware(
+    CORSMiddleware,
+    position=MiddlewarePosition.BEFORE_EXCEPTION,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 if __name__ == "__main__":
