@@ -83,7 +83,7 @@ def process_messages(session):
 
         if msg["type"] == "attraction_info":
 
-            session.add(report_attraction_info(payload))
+            session.add(cons_attraction_info(payload))
             session.commit()
 
             logger.info(
@@ -92,7 +92,7 @@ def process_messages(session):
             )
         elif msg["type"] == "expense_info":
 
-            session.add(report_expense_info(payload))
+            session.add(cons_expense_info(payload))
             session.commit()
 
             logger.info(
@@ -103,14 +103,7 @@ def process_messages(session):
         consumer.commit_offsets()
 
 
-def setup_kafka_thread():
-    """Creates thread for Kafka consumer."""
-    t1 = Thread(target=process_messages)
-    t1.daemon = True
-    t1.start()
-
-
-def report_attraction_info(body):
+def cons_attraction_info(body):
     """Constructs attraction database entry for submission to a mySQL database."""
     event = models.AttractionInfo(
         user_id=body["user_id"],
@@ -124,7 +117,7 @@ def report_attraction_info(body):
     return event
 
 
-def report_expense_info(body):
+def cons_expense_info(body):
     """Constructs expense database entry for submission to a mySQL database."""
     event = models.ExpenseInfo(
         user_id=body["user_id"],
@@ -198,10 +191,10 @@ def get_counts():
     attr_statement = select(func.count("*")).select_from(models.AttractionInfo)
     exp_statement = select(func.count("*")).select_from(models.ExpenseInfo)
 
-    num_attr = session.execute(attr_statement)
-    num_exp = session.execute(exp_statement)
+    num_attr = session.execute(attr_statement).scalar()
+    num_exp = session.execute(exp_statement).scalar()
 
-    results = {"num_attr": num_attr.scalar(), "num_exp": num_exp.scalar()}
+    results = {"num_attr": num_attr, "num_exp": num_exp}
 
     logger.info(
         "Found %s attraction entries and found %s expense entries.", num_attr, num_exp
@@ -246,6 +239,13 @@ def get_exp_ids():
     session.close()
 
     return results
+
+
+def setup_kafka_thread():
+    """Creates thread for Kafka consumer."""
+    t1 = Thread(target=process_messages)
+    t1.daemon = True
+    t1.start()
 
 
 app = connexion.FlaskApp(__name__, specification_dir="")

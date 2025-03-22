@@ -1,3 +1,5 @@
+"""Defines models representing tables in mySQL database"""
+
 from sqlalchemy.orm import DeclarativeBase, mapped_column
 from sqlalchemy import Integer, String, DateTime, Float, func
 from sqlalchemy.dialects.mysql import DATETIME
@@ -8,6 +10,10 @@ class Base(DeclarativeBase):
 
 
 class AttractionInfo(Base):
+    """Table definition for attraction_info. Contains
+    methods for returning full entries and ID only entries.
+    """
+
     __tablename__ = "attraction_info"
     id = mapped_column(Integer, primary_key=True)
     user_id = mapped_column(String(50), nullable=False)
@@ -38,6 +44,10 @@ class AttractionInfo(Base):
 
 
 class ExpenseInfo(Base):
+    """Table definition for expense_info. Contains
+    methods for returning full entries and ID only entries.
+    """
+
     __tablename__ = "expense_info"
     id = mapped_column(Integer, primary_key=True)
     user_id = mapped_column(String(50), nullable=False)
