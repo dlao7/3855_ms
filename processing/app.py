@@ -6,6 +6,7 @@ storage service to get new event entries, then re-calculating
 and updating the statistics and saving them to a JSON file.
 """
 
+import os
 from datetime import datetime as dt, timezone
 import json
 import logging.config
@@ -276,15 +277,16 @@ def init_scheduler():
 
 
 app = connexion.FlaskApp(__name__, specification_dir="")
-app.add_api("processing.yaml", strict_validation=True, validate_responses=True)
-app.add_middleware(
-    CORSMiddleware,
-    position=MiddlewarePosition.BEFORE_EXCEPTION,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.add_api("processing.yaml", base_path="/processing", strict_validation=True, validate_responses=True)
+if "CORS_ALLOW_ALL" in os.environ and os.environ["CORS_ALLOW_ALL"] == "yes":
+    app.add_middleware(
+        CORSMiddleware,
+        position=MiddlewarePosition.BEFORE_EXCEPTION,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 if __name__ == "__main__":
     init_scheduler()

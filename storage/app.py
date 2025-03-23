@@ -4,6 +4,7 @@ a mySQL database, and retrieve entries between specific timestamps,
 user and trace ids, and counts from the mySQL database.
 """
 
+import os
 from datetime import datetime as dt
 import json
 import logging.config
@@ -16,6 +17,8 @@ import yaml
 from sqlalchemy import select, func
 from pykafka import KafkaClient
 from pykafka.common import OffsetType
+from connexion.middleware import MiddlewarePosition
+from starlette.middleware.cors import CORSMiddleware
 
 import db
 import models
@@ -249,7 +252,17 @@ def setup_kafka_thread():
 
 
 app = connexion.FlaskApp(__name__, specification_dir="")
-app.add_api("storage.yaml", strict_validation=True, validate_responses=True)
+app.add_api("storage.yaml", base_path="/storage", strict_validation=True, validate_responses=True)
+
+if "CORS_ALLOW_ALL" in os.environ and os.environ["CORS_ALLOW_ALL"] == "yes":
+    app.add_middleware(
+        CORSMiddleware,
+        position=MiddlewarePosition.BEFORE_EXCEPTION,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 if __name__ == "__main__":
