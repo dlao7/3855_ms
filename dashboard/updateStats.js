@@ -1,13 +1,12 @@
-// replace this with your Cloud VM's DNS
-const CLOUD_DNS = "127.0.0.1";
+const ANALYZER_EP = "analyzer"
 
-const PROCESSING_STATS_API_URL = `http://${CLOUD_DNS}:8100/stats`;
+const PROCESSING_STATS_API_URL = "/processing/stats";
 const ANALYZER_API_URL = {
-  stats: `http://${CLOUD_DNS}:8200/stats`,
-  attr_info: `http://${CLOUD_DNS}:8200/attr_info`,
-  exp_info: `http://${CLOUD_DNS}:8200/exp_info`,
-};
-const CHECK_API_URL = `http://${CLOUD_DNS}:8300/update`;
+    stats: `/${ANALYZER_EP}/stats`,
+    attr_info: `/${ANALYZER_EP}/attr_info`,
+    exp_info: `/${ANALYZER_EP}/exp_info`
+}
+const CHECK_API_URL = "/consistency_check/update";
 
 const getRandomInt = (max) => {
   return Math.floor(Math.random() * max);

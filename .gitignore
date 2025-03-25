@@ -5,4 +5,4 @@ logs
 *.env
 ansible
 *updateStatsProd.js
-*prodprox*
+nginx.conf

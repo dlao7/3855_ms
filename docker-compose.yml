@@ -3,12 +3,12 @@ services:
     build:
       context: receiver
       dockerfile: Dockerfile
+    environment:
+      CORS_ALLOW_ALL: no
     volumes:
       - ./config/receiver:/app/config
       - ./config/logger:/app/logger
       - ./logs/receiver:/app/logs
-    ports:
-      - "8080:8080"
     depends_on:
       kafka:
         condition: service_healthy
@@ -16,6 +16,8 @@ services:
     build:
       context: storage
       dockerfile: Dockerfile
+    environment:
+      CORS_ALLOW_ALL: no
     volumes:
       - ./config/storage:/app/config
       - ./config/logger:/app/logger
@@ -29,25 +31,25 @@ services:
     build:
       context: processing
       dockerfile: Dockerfile
+    environment:
+      CORS_ALLOW_ALL: no
     volumes:
       - ./data/processing:/app/data
       - ./config/processing:/app/config
       - ./config/logger:/app/logger
       - ./logs/processing:/app/logs
-    ports:
-      - "8100:8100"
     depends_on:
       - storage
   analyzer:
     build:
       context: analyzer
       dockerfile: Dockerfile
+    environment:
+      CORS_ALLOW_ALL: no
     volumes:
       - ./config/analyzer:/app/config
       - ./config/logger:/app/logger
       - ./logs/analyzer:/app/logs
-    ports:
-      - "8200:8200"
     depends_on:
       kafka:
         condition: service_healthy
@@ -60,17 +62,19 @@ services:
     depends_on:
       - analyzer
       - processing
+      - receiver
+      - consistency_check
   consistency_check:
     build:
       context: consistency_check
       dockerfile: Dockerfile
+    environment:
+      CORS_ALLOW_ALL: no
     volumes:
       - ./data/check:/app/data
       - ./config/check:/app/config
       - ./config/logger:/app/logger
       - ./logs/check:/app/logs
-    ports:
-      - "8300:8300"
     depends_on:
       - analyzer
       - processing
