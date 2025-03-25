@@ -6,3 +6,4 @@ logs
 ansible
 *updateStatsProd.js
 nginx.conf
+*prodprox*
