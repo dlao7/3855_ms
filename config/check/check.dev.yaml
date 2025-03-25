@@ -3,14 +3,14 @@ datastore:
   filepath: ./data/check.json
 eventstores:
   proc_stats:
-    url: http://processing:8100/stats
+    url: http://processing:8100/processing/stats
   analyzer_counts:
-    url: http://analyzer:8200/stats
+    url: http://analyzer:8200/analyzer/stats
   analyzer_ids:
-    url: http://analyzer:8200/analyzer_ids
+    url: http://analyzer:8200/analyzer/analyzer_ids
   storage_counts:
-    url: http://storage:8090/counts
+    url: http://storage:8090/storage/counts
   storage_attr_ids:
-    url: http://storage:8090/attr_ids
+    url: http://storage:8090/storage/attr_ids
   storage_exp_ids:
-    url: http://storage:8090/exp_ids
+    url: http://storage:8090/storage/exp_ids

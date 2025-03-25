@@ -1,8 +1,8 @@
 version: 1
 attractions:
-  url: http://storage:8090/info/attractions
+  url: http://storage:8090/storage/info/attractions
 expenses:
-  url: http://storage:8090/info/expenses
+  url: http://storage:8090/storage/info/expenses
 events:
   hostname: kafka
   port: 9092

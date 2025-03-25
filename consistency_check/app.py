@@ -16,7 +16,7 @@ from connexion.middleware import MiddlewarePosition
 from starlette.middleware.cors import CORSMiddleware
 
 # App Config
-with open("config/check.prodprox.yaml", "r", encoding="utf-8") as f:
+with open("config/check.prod.yaml", "r", encoding="utf-8") as f:
     app_config = yaml.safe_load(f.read())
 
 # Logging

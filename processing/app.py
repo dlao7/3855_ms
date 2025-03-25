@@ -21,7 +21,7 @@ from connexion.middleware import MiddlewarePosition
 from starlette.middleware.cors import CORSMiddleware
 
 # Variable Loading
-with open("config/processing.prodprox.yaml", "r", encoding="utf-8") as f:
+with open("config/processing.prod.yaml", "r", encoding="utf-8") as f:
     app_config = yaml.safe_load(f.read())
 
 

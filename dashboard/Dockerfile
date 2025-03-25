@@ -6,8 +6,8 @@ COPY index.html plane.jpg /usr/share/nginx/html
 
 COPY style.css /usr/share/nginx/html
 
-COPY updateStatsprodprox.js /usr/share/nginx/html
+COPY updateStatsProd.js /usr/share/nginx/html
 
-COPY config/nginx.conf  /etc/nginx/conf.d/
+COPY config/nginx.conf  /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
