@@ -39,6 +39,7 @@ class AttractionInfo(Base):
         dict = {}
         dict["user_id"] = self.user_id
         dict["trace_id"] = self.trace_id
+        dict["type"] = "attraction_info"
 
         return dict
 
@@ -73,5 +74,6 @@ class ExpenseInfo(Base):
         dict = {}
         dict["user_id"] = self.user_id
         dict["trace_id"] = self.trace_id
+        dict["type"] = "expense_info"
 
         return dict

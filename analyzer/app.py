@@ -151,6 +151,7 @@ def get_event_ids():
         event_id = {
             "user_id": msg["payload"]["user_id"],
             "trace_id": msg["payload"]["trace_id"],
+            "type": msg["type"]
         }
         all_entries.append(event_id)
 
