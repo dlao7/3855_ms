@@ -10,8 +10,8 @@ with open("config/storage.prod.yaml", "r", encoding="utf-8") as f:
 
 # Set up an engine
 engine = create_engine(
-    f"mysql://{db_config["datastore"]["user"]}:{db_config["datastore"]["password"]}"
-    f"@{db_config["datastore"]["hostname"]}/{db_config["datastore"]["db"]}"
+    f"mysql://{db_config['datastore']['user']}:{db_config['datastore']['password']}"
+    f"@{db_config['datastore']['hostname']}/{db_config['datastore']['db']}"
 )
 
 

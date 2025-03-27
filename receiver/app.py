@@ -34,11 +34,10 @@ def make_log(event_type, trace_id):
 
 # Kafka variables
 client = KafkaClient(
-    hosts=f"{app_config["events"]["hostname"]}:{app_config["events"]["port"]}"
+    hosts=f"{app_config['events']['hostname']}:{app_config['events']['port']}"
 )
-topic = client.topics[str.encode(f"{app_config["events"]["topic"]}")]
+topic = client.topics[str.encode(f"{app_config['events']['topic']}")]
 producer = topic.get_sync_producer()
-
 
 # Endpoints
 def report_attraction_info(body):

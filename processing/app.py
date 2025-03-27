@@ -227,11 +227,11 @@ def populate_stats():
         json.dump(updated_stats, w, indent=4)
 
     update_string = (
-        f"num_attr:{updated_stats["num_attr"]}, "
-        f"avg_hours_open:{updated_stats["avg_hours_open"]}, "
-        f"num_exp:{updated_stats["num_exp"]}, "
-        f"avg_amount:{updated_stats["avg_amount"]}, "
-        f"last_updated:{updated_stats["last_updated"]}"
+        f"num_attr:{updated_stats['num_attr']}, "
+        f"avg_hours_open:{updated_stats['avg_hours_open']}, "
+        f"num_exp:{updated_stats['num_exp']}, "
+        f"avg_amount:{updated_stats['avg_amount']}, "
+        f"last_updated:{updated_stats['last_updated']}"
     )
     logger.debug("The updated stats are %s.", update_string)
     logger.info("Periodic processing has ended.")
