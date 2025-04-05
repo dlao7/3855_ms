@@ -10,9 +10,12 @@ from threading import Thread
 
 import connexion
 import yaml
-from pykafka import KafkaClient
+
+# from pykafka import KafkaClient
 from connexion.middleware import MiddlewarePosition
 from starlette.middleware.cors import CORSMiddleware
+
+from wrapper import KafkaWrapper
 
 # App Config
 with open("config/analyzer.prod.yaml", "r", encoding="utf-8") as f:
@@ -23,13 +26,29 @@ with open("logger/log.prod.yaml", "r", encoding="utf-8") as f:
     log_config = yaml.safe_load(f.read())
     logging.config.dictConfig(log_config)
 
-
 logger = logging.getLogger("basicLogger")
 
-# Kafka Client Settings
-HOST_NAME = f"{app_config['events']['hostname']}:{app_config['events']['port']}"
-client = KafkaClient(hosts=HOST_NAME)
-topic = client.topics[str.encode(f"{app_config['events']['topic']}")]
+
+kafka_attr = KafkaWrapper(
+    "get_attr",
+    f"{app_config['events']['hostname']}:{app_config['events']['port']}",
+    b"events",
+)
+kafka_exp = KafkaWrapper(
+    "get_exp",
+    f"{app_config['events']['hostname']}:{app_config['events']['port']}",
+    b"events",
+)
+kafka_stats = KafkaWrapper(
+    "get_event_stats",
+    f"{app_config['events']['hostname']}:{app_config['events']['port']}",
+    b"events",
+)
+kafka_ids = KafkaWrapper(
+    "get_event_ids",
+    f"{app_config['events']['hostname']}:{app_config['events']['port']}",
+    b"events",
+)
 
 
 def get_attr(index):
@@ -39,26 +58,31 @@ def get_attr(index):
     index (int): Index of the attraction event
 
     Returns:
-    Message that matches the index, or 404 if there
-    is no message at that index.
+    Message that matches the index, or 404 if there is no message at that index.
     """
-    consumer = topic.get_simple_consumer(
-        reset_offset_on_start=True, consumer_timeout_ms=1000
-    )
 
     counter = 0
-    for msg in consumer:
+    found = False
+
+    for msg in kafka_attr.messages():
         msg_str = msg.value.decode("utf-8")
         msg = json.loads(msg_str)
 
         if msg["type"] == "attraction_info":
             if counter == index:
                 logger.info("Attraction Message found at index %s", index)
-                return msg["payload"], 200
+                found = True
+                found_msg = msg["payload"]
+                break
 
             counter += 1
 
-    return {"message": f"No attraction message at index {index}!"}, 404
+    kafka_attr.consumer.reset_offsets()
+
+    if found == True:
+        return found_msg, 200
+    else:
+        return {"message": f"No attraction message at index {index}!"}, 404
 
 
 def get_exp(index):
@@ -68,27 +92,31 @@ def get_exp(index):
     index (int): Index of the expense event
 
     Returns:
-    Message that matches the index, or 404 if there
-    is no message at that index.
+    Message that matches the index, or 404 if there is no message at that index.
     """
-    consumer = topic.get_simple_consumer(
-        reset_offset_on_start=True, consumer_timeout_ms=1000
-    )
 
     counter = 0
-    for msg in consumer:
+    found = False
+
+    for msg in kafka_exp.messages():
         msg_str = msg.value.decode("utf-8")
         msg = json.loads(msg_str)
 
         if msg["type"] == "expense_info":
             if counter == index:
                 logger.info("Expense Message found at index %s", index)
-
-                return msg["payload"], 200
+                found = True
+                found_msg = msg["payload"]
+                break
 
             counter += 1
 
-    return {"message": f"No expense message at index {index}!"}, 404
+    kafka_exp.consumer.reset_offsets()
+
+    if found == True:
+        return found_msg, 200
+    else:
+        return {"message": f"No expense message at index {index}!"}, 404
 
 
 def get_event_stats():
@@ -105,20 +133,19 @@ def get_event_stats():
     """
     logger.info("Request received to get number of event type in queue.")
 
-    consumer = topic.get_simple_consumer(
-        reset_offset_on_start=True, consumer_timeout_ms=1000
-    )
-
     attr_counter = 0
     exp_counter = 0
 
-    for msg in consumer:
+    for msg in kafka_stats.messages():
         msg_str = msg.value.decode("utf-8")
         msg = json.loads(msg_str)
+
         if msg["type"] == "attraction_info":
             attr_counter += 1
         else:
             exp_counter += 1
+
+    kafka_stats.consumer.reset_offsets()
 
     logger.info("Request completed to get number of event type in queue.")
 
@@ -138,41 +165,54 @@ def get_event_ids():
     Example:
     [ {"user_id": "XXXX", "trace_id": "XXXX"}, {"user_id": "XXXX", "trace_id": "XXXX"} ]
     """
-    consumer = topic.get_simple_consumer(
-        reset_offset_on_start=True, consumer_timeout_ms=1000
-    )
 
     all_entries = []
 
-    for msg in consumer:
+    for msg in kafka_ids.messages():
         msg_str = msg.value.decode("utf-8")
         msg = json.loads(msg_str)
 
         event_id = {
             "user_id": msg["payload"]["user_id"],
             "trace_id": msg["payload"]["trace_id"],
-            "type": msg["type"]
+            "type": msg["type"],
         }
         all_entries.append(event_id)
 
-    logger.info("%s, entry ids found.", len(all_entries))
+    kafka_ids.consumer.reset_offsets()
+
+    logger.info("%s entry ids found.", len(all_entries))
 
     return all_entries, 200
 
 
 def setup_kafka_thread():
-    """Creates threads for single event extraction from Kafka queue."""
+    """Creates threads for functions consuming from Kafka queue."""
     t1 = Thread(target=get_attr)
     t1.daemon = True
+
     t2 = Thread(target=get_exp)
     t2.daemon = True
 
+    t3 = Thread(target=get_event_stats)
+    t3.daemon = True
+
+    t4 = Thread(target=get_event_ids)
+    t4.daemon = True
+
     t1.start()
     t2.start()
+    t3.start()
+    t4.start()
 
 
 app = connexion.FlaskApp(__name__, specification_dir="")
-app.add_api("analyzer.yaml", base_path="/analyzer", strict_validation=True, validate_responses=True)
+app.add_api(
+    "analyzer.yaml",
+    base_path="/analyzer",
+    strict_validation=True,
+    validate_responses=True,
+)
 
 if "CORS_ALLOW_ALL" in os.environ and os.environ["CORS_ALLOW_ALL"] == "yes":
     app.add_middleware(

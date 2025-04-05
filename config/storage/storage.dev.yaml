@@ -9,3 +9,7 @@ events:
   hostname: kafka
   port: 9092
   topic: events
+engine:
+  pool_recycle: 500
+  pool_pre_ping: True
+  pool_size: 5

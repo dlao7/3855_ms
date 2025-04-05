@@ -11,9 +11,10 @@ import uuid
 import connexion
 from connexion import NoContent
 import yaml
-from pykafka import KafkaClient
 from connexion.middleware import MiddlewarePosition
 from starlette.middleware.cors import CORSMiddleware
+
+from wrapper import KafkaWrapper
 
 # Endpoint configuration
 with open("config/receiver.prod.yaml", "r", encoding="utf-8") as f:
@@ -26,29 +27,21 @@ with open("logger/log.prod.yaml", "r", encoding="utf-8") as f:
 
 logger = logging.getLogger("basicLogger")
 
-
 def make_log(event_type, trace_id):
     """Creates log for events with type and trace ID."""
     logger.info("Received event %s with a trace id of %s", event_type, trace_id)
 
-
-# Kafka variables
-client = KafkaClient(
-    hosts=f"{app_config['events']['hostname']}:{app_config['events']['port']}"
+kafka_wrapper = KafkaWrapper(
+    f"{app_config['events']['hostname']}:{app_config['events']['port']}", b"events"
 )
-topic = client.topics[str.encode(f"{app_config['events']['topic']}")]
-producer = topic.get_sync_producer()
 
 # Endpoints
 def report_attraction_info(body):
-    """Recieves JSON from post request and
-    attaches attraction type and time received
-    and publishes this message to the Kafka
-    queue.
+    """Recieves JSON from post request and attaches attraction type and time received
+    and publishes this message to the Kafka queue.
 
     Parameters:
-    body (JSON): contains attraction event
-    information including user id, attraction
+    body (JSON): contains attraction event information including user id, attraction
     category, attraction time stamp and hours open.
 
     Example body:
@@ -70,21 +63,20 @@ def report_attraction_info(body):
         "payload": body,
     }
     msg_str = json.dumps(msg)
-    producer.produce(msg_str.encode("utf-8"))
+
+    kafka_wrapper.produce_msg(msg_str)
+
     logger.info("Attraction Event posted to Kafka with trace_id %s.", body["trace_id"])
 
     return NoContent, 201
 
 
 def report_expense_info(body):
-    """Recieves JSON from post request and
-    attaches expense type and time received
-    and publishes this message to the Kafka
-    queue.
+    """Receives JSON from post request and attaches expense type and time received
+    and publishes this message to the Kafka queue.
 
     Parameters:
-    body (JSON): contains expense event
-    information including user id, expense
+    body (JSON): contains expense event information including user id, expense
     category, expense time stamp and amount.
 
     Example body:
@@ -106,7 +98,9 @@ def report_expense_info(body):
         "payload": body,
     }
     msg_str = json.dumps(msg)
-    producer.produce(msg_str.encode("utf-8"))
+
+    kafka_wrapper.produce_msg(msg_str)
+
     logger.info("Expense Event posted to Kafka with trace_id %s.", body["trace_id"])
 
     return NoContent, 201

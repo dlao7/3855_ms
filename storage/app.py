@@ -15,14 +15,13 @@ import connexion
 import yaml
 
 from sqlalchemy import select, func
-from pykafka import KafkaClient
-from pykafka.common import OffsetType
 from connexion.middleware import MiddlewarePosition
 from starlette.middleware.cors import CORSMiddleware
 
 import db
 import models
 import create_db
+from wrapper import KafkaWrapper
 
 # App Config
 with open("config/storage.prod.yaml", "r", encoding="utf-8") as f:
@@ -40,6 +39,11 @@ logger = logging.getLogger("basicLogger")
 def log_event(event_type, trace_id):
     """Creates log for events with type and trace ID."""
     logger.debug("Stored event %s with a trace id of %s", event_type, trace_id)
+
+
+kafka_wrapper = KafkaWrapper(
+    f"{app_config['events']['hostname']}:{app_config['events']['port']}", b"events"
+)
 
 
 def use_db_session(func):
@@ -62,22 +66,9 @@ def use_db_session(func):
 @use_db_session
 def process_messages(session):
     """Consumes Kafka queue messages and inserts them into mySQL database."""
-    hostname = f"{app_config['events']['hostname']}:{app_config['events']['port']}"
-    client = KafkaClient(hosts=hostname)
-    topic = client.topics[str.encode(f"{app_config['events']['topic']}")]
-
-    # Create a consume on a consumer group, that only reads new messages
-    # (uncommitted messages) when the service re-starts (i.e., it doesn't
-    # read all the old messages from the history in the message queue).
-
-    consumer = topic.get_simple_consumer(
-        consumer_group=b"event_group",
-        reset_offset_on_start=False,
-        auto_offset_reset=OffsetType.LATEST,
-    )
 
     # This is blocking - it will wait for a new message
-    for msg in consumer:
+    for msg in kafka_wrapper.messages():
         msg_str = msg.value.decode("utf-8")
         msg = json.loads(msg_str)
         logger.info("Message: %s", msg)
@@ -103,7 +94,7 @@ def process_messages(session):
             )
 
         # Commit the new message as being read
-        consumer.commit_offsets()
+        kafka_wrapper.consumer.commit_offsets()
 
 
 def cons_attraction_info(body):
@@ -133,10 +124,10 @@ def cons_expense_info(body):
     return event
 
 
-def get_attraction_info(start_timestamp, end_timestamp):
+@use_db_session
+def get_attraction_info(session, start_timestamp, end_timestamp):
     """Gets new attraction entries from the mySQL database between the start and end timestamps
     and returns the result as a list of dictionaries."""
-    session = db.make_session()
 
     start = dt.fromisoformat(start_timestamp)
     end = dt.fromisoformat(end_timestamp)
@@ -151,8 +142,6 @@ def get_attraction_info(start_timestamp, end_timestamp):
         result.to_dict() for result in session.execute(statement).scalars().all()
     ]
 
-    session.close()
-
     logger.info(
         "Found %d attraction entries (start: %s, end: %s)", len(results), start, end
     )
@@ -160,10 +149,10 @@ def get_attraction_info(start_timestamp, end_timestamp):
     return results
 
 
-def get_expense_info(start_timestamp, end_timestamp):
+@use_db_session
+def get_expense_info(session, start_timestamp, end_timestamp):
     """Gets new expense entries from the mySQL database between the start and end timestamps
     and returns the result as a list of dictionaries."""
-    session = db.make_session()
 
     start = dt.fromisoformat(start_timestamp)
     end = dt.fromisoformat(end_timestamp)
@@ -178,8 +167,6 @@ def get_expense_info(start_timestamp, end_timestamp):
         result.to_dict() for result in session.execute(statement).scalars().all()
     ]
 
-    session.close()
-
     logger.info(
         "Found %d expense entries (start: %s, end: %s)", len(results), start, end
     )
@@ -187,9 +174,9 @@ def get_expense_info(start_timestamp, end_timestamp):
     return results
 
 
-def get_counts():
+@use_db_session
+def get_counts(session):
     """Gets counts of each event from the mySQL database."""
-    session = db.make_session()
 
     attr_statement = select(func.count("*")).select_from(models.AttractionInfo)
     exp_statement = select(func.count("*")).select_from(models.ExpenseInfo)
@@ -203,15 +190,13 @@ def get_counts():
         "Found %s attraction entries and found %s expense entries.", num_attr, num_exp
     )
 
-    session.close()
-
     return results
 
 
-def get_attr_ids():
+@use_db_session
+def get_attr_ids(session):
     """Gets all user and trace IDs of attraction events from the mySQL database and
     returns them as a list of dictionaries."""
-    session = db.make_session()
 
     statement = select(models.AttractionInfo)
 
@@ -221,15 +206,13 @@ def get_attr_ids():
 
     logger.info("Found %d attraction id entries", len(results))
 
-    session.close()
-
     return results
 
 
-def get_exp_ids():
+@use_db_session
+def get_exp_ids(session):
     """Gets all user and trace IDs of expense events from the mySQL database and
     returns them as a list of dictionaries."""
-    session = db.make_session()
 
     statement = select(models.ExpenseInfo)
 
@@ -238,8 +221,6 @@ def get_exp_ids():
     ]
 
     logger.info("Found %d expense id entries", len(results))
-
-    session.close()
 
     return results
 
@@ -252,7 +233,12 @@ def setup_kafka_thread():
 
 
 app = connexion.FlaskApp(__name__, specification_dir="")
-app.add_api("storage.yaml", base_path="/storage", strict_validation=True, validate_responses=True)
+app.add_api(
+    "storage.yaml",
+    base_path="/storage",
+    strict_validation=True,
+    validate_responses=True,
+)
 
 if "CORS_ALLOW_ALL" in os.environ and os.environ["CORS_ALLOW_ALL"] == "yes":
     app.add_middleware(

@@ -1,9 +1,9 @@
 """
-Processing microservice to gather statistics about the
-attraction and expense events, such as the number of each
-and averages. Runs periodically, making a query to the
-storage service to get new event entries, then re-calculating
-and updating the statistics and saving them to a JSON file.
+Processing microservice to gather statistics about the attraction
+and expense events, such as the number of each and averages.
+Runs periodically, making a query to the storage service to
+get new event entries, then re-calculating and updating the
+statistics and saving them to a JSON file.
 """
 
 import os
@@ -33,22 +33,18 @@ with open("logger/log.prod.yaml", "r", encoding="utf-8") as f:
 
 logger = logging.getLogger("basicLogger")
 
-
 def calc_stats(past_values, attr, exp):
-    """Calculates the stats for the
-    two events using the past stored values
-    and the new entries.
+    """Calculates the stats for the two events using the past stored
+    values and the new entries.
 
     Parameters:
-    past_values (dict): Contains the contents of the
-    json file with the stats calculated the last time
-    the populate_stats function was run.
-    attr (list): List of dictionaries with the new
-    attraction entries since the last time the
-    populate_stats function was run.
-    exp (list): List of dictionaries with the new
-    expense entries since the last time the
-    populate_stats function was run.
+    past_values (dict): Contains the contents of the json file with
+    the stats calculated the last time the populate_stats function
+    was run.
+    attr (list): List of dictionaries with the new attraction
+    entries since the last time the populate_stats function was run.
+    exp (list): List of dictionaries with the new  expense entries
+    since the last time the populate_stats function was run.
 
     Returns:
     Updated statistics for the two events.
@@ -240,13 +236,11 @@ def populate_stats():
 
 
 def get_stats():
-    """Reads the processing JSON file and
-    returns the JSON.
+    """Reads the processing JSON file and returns the JSON.
 
     Returns:
-    The JSON from the processing JSON file
-    with the counts and averages for the
-    two events.
+    The JSON from the processing JSON file with the counts and
+    averages for the two events.
     """
     logger.info("A request was received.")
 
