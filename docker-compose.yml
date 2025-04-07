@@ -91,7 +91,7 @@ services:
     command: bash -c "rm -f /kafka/kafka-logs-kafka/meta.properties && start-kafka.sh"
     hostname: kafka
     environment:
-      KAFKA_BROKER_ID: 1001
+      KAFKA_BROKER_ID: 1
       KAFKA_CREATE_TOPICS: "events:1:1" # topic:partition:replicas
       KAFKA_ADVERTISED_HOST_NAME: kafka # docker-machine ip
       KAFKA_LISTENERS: INSIDE://:29092,OUTSIDE://:9092
