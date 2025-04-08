@@ -283,5 +283,5 @@ if "CORS_ALLOW_ALL" in os.environ and os.environ["CORS_ALLOW_ALL"] == "yes":
     )
 
 if __name__ == "__main__":
-    # init_scheduler()
+    init_scheduler()
     app.run(port=8100, host="0.0.0.0")

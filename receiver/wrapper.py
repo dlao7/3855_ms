@@ -43,8 +43,8 @@ class KafkaWrapper:
             logger.info("Kafka client created!")
             return True
         except KafkaException as e:
-            msg = f"Kafka error when making client: {e}"
-            logger.warning(msg)
+            error = f"Kafka error when making client: {e}"
+            logger.warning(error)
             self.client = None
             self.producer = None
             return False
@@ -62,10 +62,10 @@ class KafkaWrapper:
 
         try:
             topic = self.client.topics[self.topic]
-            self.producer = topic.get_sync_producer()
+            self.producer = topic.get_sync_producer() # while kafka is down, this causes an exception, and that message is dropped
         except KafkaException as e:
-            msg = f"Make error when making producer: {e}"
-            logger.warning(msg)
+            error = f"Make error when making producer: {e}"
+            logger.warning(error)
             self.client = None
             self.producer = None
             return False
@@ -79,8 +79,8 @@ class KafkaWrapper:
                 self.producer.produce(msg.encode("utf-8"))
                 break
             except KafkaException as e:
-                msg = f"Kafka issue in producer: {e}"
-                logger.warning(msg)
+                error = f"Kafka issue in producer: {e}"
+                logger.warning(error)
                 self.client = None
                 self.producer = None
                 self.connect()

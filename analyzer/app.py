@@ -145,6 +145,9 @@ def get_event_stats():
         else:
             exp_counter += 1
 
+    logger.debug("Attraction Events found:", attr_counter)
+    logger.debug("Expense Events found:", exp_counter)
+
     kafka_stats.consumer.reset_offsets()
 
     logger.info("Request completed to get number of event type in queue.")

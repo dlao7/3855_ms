@@ -85,8 +85,8 @@ class KafkaWrapper:
                 for msg in self.consumer:
                     yield msg
             except KafkaException as e:
-                msg = f"Kafka issue in consumer: {e}"
-                logger.warning(msg)
+                error = f"Kafka issue in consumer: {e}"
+                logger.warning(error)
                 self.client = None
                 self.consumer = None
                 self.connect()

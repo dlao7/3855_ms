@@ -102,7 +102,10 @@ def run_consistency_checks():
     analyzer_ids = httpx.get(app_config["eventstores"]["analyzer_ids"]["url"]).json()
 
     # get processing stats
-    proc_stats = httpx.get(app_config["eventstores"]["proc_stats"]["url"]).json()
+    try:
+        proc_stats = httpx.get(app_config["eventstores"]["proc_stats"]["url"]).json()
+    except:
+        return "404 Error, no stats found."
 
     # Combine the id entries from storage
     all_storage_ids = storage_attr_ids + storage_exp_ids

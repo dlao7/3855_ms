@@ -4,6 +4,7 @@ import logging.config
 
 import yaml
 from pykafka import KafkaClient
+from pykafka.common import OffsetType
 from pykafka.exceptions import KafkaException
 
 # Logging
@@ -65,6 +66,7 @@ class KafkaWrapper:
         try:
             topic = self.client.topics[self.topic]
             self.consumer = topic.get_simple_consumer(
+                auto_offset_reset=OffsetType.EARLIEST,
                 reset_offset_on_start=True,
                 consumer_timeout_ms=1000
             )
@@ -85,8 +87,8 @@ class KafkaWrapper:
                     yield msg
                 break
             except KafkaException as e:
-                msg = f"Kafka issue in consumer: {e}"
-                logger.warning(msg)
+                error = f"Kafka issue in consumer: {e}"
+                logger.warning(error)
                 self.client = None
                 self.consumer = None
                 self.connect()
