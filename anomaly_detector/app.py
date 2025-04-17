@@ -83,7 +83,7 @@ def update_anomalies():
 def get_anomalies(event_type=None):
     logger.debug("Request to get anomalies received")
     # wrong event type - return 400
-    if event_type not in ["attraction_info", "expense_info"]:
+    if event_type not in ["attraction_info", "expense_info"] and event_type != None:
         return 400
 
     # load json
