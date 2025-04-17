@@ -66,6 +66,7 @@ services:
       - processing
       - receiver
       - consistency_check
+      - anomaly_detector
   consistency_check:
     build:
       context: consistency_check
@@ -81,6 +82,21 @@ services:
       - analyzer
       - processing
       - storage
+  anomaly_detector:
+    build:
+      context: anomaly_detector
+      dockerfile: Dockerfile
+    environment:
+      MIN_HOURS: 4
+      MAX_PRICE: 20
+    volumes:
+      - ./data/anomaly:/app/data
+      - ./config/anomaly:/app/config
+      - ./config/logger:/app/logger
+      - ./logs/anomaly:/app/logs
+    depends_on:
+      kafka:
+        condition: service_healthy
   zookeeper:
     image: wurstmeister/zookeeper
     hostname: zookeeper
